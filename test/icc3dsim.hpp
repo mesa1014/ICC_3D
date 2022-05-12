@@ -19,8 +19,9 @@
 #include "ChasteEllipsoid.hpp"
 #include "AbstractElement.hpp"
 
-// #include "FileComparison.hpp"
-// #include "FileFinder.hpp"
+#include "FileComparison.hpp"
+#include "FileFinder.hpp"
+#include "Hdf5ToMeshalyzerConverter.hpp"
 
 // for mechanics
 #include "CardiacElectroMechProbRegularGeom.hpp"
@@ -98,7 +99,7 @@ public:
     // Read electric mesh file
     TetrahedralMesh<3,3> mesh;
     std::string myFile = "scaffold_3elems_16_16_1.3";
-    std::string meshFile = "/home/chaste/projects/mesh/3elems_16_16_1/" + myFile;
+    std::string meshFile = "/home/chaste/projects/mesh/3elems_16_16_1_v2/" + myFile;
     TrianglesMeshReader<3,3> mesh_reader(meshFile.c_str());
     mesh.ConstructFromMeshReader(mesh_reader);
     // mesh.Scale(20, 20, 20);
@@ -106,7 +107,7 @@ public:
     // Read mechanics mesh f1ile
     QuadraticMesh<3> mechanics_mesh;
     std::string myFile_m = "scaffold_3elems_16_16_1.2";
-    std::string meshFile_m = "/home/chaste/projects/mesh/3elems_16_16_1/" + myFile_m;
+    std::string meshFile_m = "/home/chaste/projects/mesh/3elems_16_16_1_v2/" + myFile_m;
     TrianglesMeshReader<3,3> mesh_reader_m(meshFile_m.c_str(),2);
     mechanics_mesh.ConstructFromMeshReader(mesh_reader_m);
     // mechanics_mesh.Scale(20, 20, 20);
@@ -120,7 +121,7 @@ public:
     //
     ///// fixed nodes are all nodes on top and bottom
     std::vector<unsigned> fixed_nodes;
-    fixed_nodes  = {17, 1636, 1649, 1598};
+    fixed_nodes  = {17,1636, 1649, 1598};
     // fixed_nodes = NonlinearElasticityTools<3>::GetNodesByComponentValue(mechanics_mesh, 1, 0.0);
 
     // std::vector<unsigned> fixed_nodes_bottom  = NonlinearElasticityTools<3>::GetNodesByComponentValue(mechanics_mesh, 1, 0.0);
@@ -137,24 +138,28 @@ public:
     for(unsigned int k = 0; k < fixed_nodes.size(); k++)
     std::cout << "fixed_nodes:" << fixed_nodes[k] << ' ' << std::endl;
 
+
+
     // dev test
-    for (unsigned i=1; i<mechanics_mesh.GetNumNodes(); i++)
+    for (unsigned i=0; i<5; i++)
     {
       double X = mechanics_mesh.GetNode(i)->rGetLocation()[0];
       double Y = mechanics_mesh.GetNode(i)->rGetLocation()[1];
       double Z = mechanics_mesh.GetNode(i)->rGetLocation()[2];
       std::cout <<"node id: " << i << ", X: " << X << " , Y: " << Y << " , Z: " << Z << std::endl;
+      int N = mechanics_mesh.GetNode(i)->GetIndex();
+      std::cout <<"node index: " << N << std::endl;
     }
     // Simulation settings
     HeartConfig::Instance()->SetSurfaceAreaToVolumeRatio(2000);
     HeartConfig::Instance()->SetUseAbsoluteTolerance(1e-3);
     HeartConfig::Instance()->SetCapacitance(2.5);
-    HeartConfig::Instance()->SetIntracellularConductivities(Create_c_vector(0.12, 0.12));
+    HeartConfig::Instance()->SetIntracellularConductivities(Create_c_vector(0.12, 0.12, 0.12));
     HeartConfig::Instance()->SetSimulationDuration(3000);  //ms.
     HeartConfig::Instance()->SetOdePdeAndPrintingTimeSteps(0.1,0.1,100); // doesn't work here!
 
     // Output visualization options
-    HeartConfig::Instance()->SetVisualizeWithCmgui(true);
+    HeartConfig::Instance()->SetVisualizeWithCmgui(false);
     HeartConfig::Instance()->SetVisualizeWithMeshalyzer(false);
     HeartConfig::Instance()->SetVisualizeWithVtk(false);
 
@@ -176,7 +181,7 @@ public:
     // problem_defn.SetUseDefaultCardiacMaterialLaw(INCOMPRESSIBLE);
     problem_defn.SetMaterialLaw(INCOMPRESSIBLE, &law2);
     problem_defn.SetZeroDisplacementNodes(fixed_nodes);
-    problem_defn.SetMechanicsSolveTimestep(100.0);
+    problem_defn.SetMechanicsSolveTimestep(1.0);
     // problem_defn.SetVariableFibreSheetDirectionsFile(finder, true);
     problem_defn.SetSolveUsingSnes();
 
