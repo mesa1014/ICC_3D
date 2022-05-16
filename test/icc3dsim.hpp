@@ -139,24 +139,34 @@ public:
     std::cout << "fixed_nodes:" << fixed_nodes[k] << ' ' << std::endl;
 
 
-
+    int counter = 0;
     // dev test
-    for (unsigned i=0; i<5; i++)
+    for (unsigned i=0; i<mechanics_mesh.GetNumNodes()-1; i++)
     {
+      bool bn = mechanics_mesh.GetNode(i)->IsBoundaryNode();
       double X = mechanics_mesh.GetNode(i)->rGetLocation()[0];
       double Y = mechanics_mesh.GetNode(i)->rGetLocation()[1];
       double Z = mechanics_mesh.GetNode(i)->rGetLocation()[2];
-      std::cout <<"node id: " << i << ", X: " << X << " , Y: " << Y << " , Z: " << Z << std::endl;
-      int N = mechanics_mesh.GetNode(i)->GetIndex();
-      std::cout <<"node index: " << N << std::endl;
+      // std::cout <<"node id: " << i << ", X: " << X << " , Y: " << Y << " , Z: " << Z << std::endl;
+      // int N = mechanics_mesh.GetNode(i)->GetIndex();
+      // std::cout <<"node index: " << N << std::endl;
+      if (bn){
+        counter++;
+         std::cout <<"I'm boundary node , node id: " << i << ", X: " << X << " , Y: " << Y << " , Z: " << Z << std::endl;
+       }
     }
+    std::cout <<"Number of boundary nodes: " << counter << std::endl;
     // Simulation settings
     HeartConfig::Instance()->SetSurfaceAreaToVolumeRatio(2000);
     HeartConfig::Instance()->SetUseAbsoluteTolerance(1e-3);
     HeartConfig::Instance()->SetCapacitance(2.5);
     HeartConfig::Instance()->SetIntracellularConductivities(Create_c_vector(0.12, 0.12, 0.12));
-    HeartConfig::Instance()->SetSimulationDuration(3000);  //ms.
+    HeartConfig::Instance()->SetSimulationDuration(1000);  //ms.
     HeartConfig::Instance()->SetOdePdeAndPrintingTimeSteps(0.1,0.1,100); // doesn't work here!
+
+    HeartConfig::Instance()->SetPrintingTimeStep(100.0);
+    double print_time_step = HeartConfig::Instance()->GetPrintingTimeStep();
+    cout << "Print time step: " << print_time_step << endl;
 
     // Output visualization options
     HeartConfig::Instance()->SetVisualizeWithCmgui(false);
